@@ -1,0 +1,37 @@
+# Runs the same checks as `make check` on every push to main and every pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The workflow only needs to read the code. Least privilege by default.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: lint and test
+    runs-on: ubuntu-latest
+    steps:
+      # Actions are pinned to a full commit SHA (the comment shows the version),
+      # so a moved or hijacked tag can't change what runs here.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      # Installs the Python version in .python-version and the exact packages in uv.lock.
+      # --locked fails the build if uv.lock is out of date with pyproject.toml.
+      - name: Install the project
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Test (no model calls)
+        run: uv run pytest -m "not eval"

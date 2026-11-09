@@ -1,0 +1,64 @@
+[project]
+name = "small-model-tool-calling"
+version = "0.1.0"
+description = "A LoRA fine-tune of a small open model for tool calling, compared with a frontier API on quality, cost and latency."
+readme = "README.md"
+authors = [
+    { name = "MD. ABIR HASAN PIASH", email = "abirhasanpiash@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+small-model-tool-calling = "small_model_tool_calling:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+# ------------------------------------------------------------------ ruff
+# requires-python (in [project] above) tells Ruff which Python syntax to
+# target, so target-version is not repeated here.
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# An explicit list, so every rule that fires is one this project chose.
+# Ruff 0.16+ turns on 413 rules by default and `select` replaces that set.
+# To keep Ruff's defaults and add these on top, rename it `extend-select`.
+select = [
+  "E4", "E7", "E9", "F",  # pycodestyle errors + Pyflakes: Ruff's classic core
+  "I",                    # import sorting
+  "B",                    # bugbear: likely bugs
+  "UP",                   # pyupgrade: modern syntax for your Python version
+  "SIM",                  # simpler equivalent code
+  "S",                    # bandit: security smells
+  "PT",                   # pytest style
+  "RUF",                  # Ruff's own rules
+]
+ignore = [
+  "S311",  # `random` is fine for sampling and shuffling data; only secrets need `secrets`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # pytest is built on assert
+"evals/**" = ["S101"]
+
+# ---------------------------------------------------------------- pytest
+# Native TOML settings (pytest 9+). strict = true turns unknown markers and
+# config typos into errors instead of silent warnings.
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests", "evals"]
+addopts = ["-ra", "--import-mode=importlib"]
+strict = true
+markers = [
+  "eval: calls models and uses API quota; run with make eval",
+  "slow: takes more than a few seconds",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+]
